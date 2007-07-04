@@ -1,5 +1,17 @@
 Revision history for Perl extension Term::Prompt.
 
+1.04  Wed Jul 04 20:00:00 2007
+
+	- Fixed line 229 to avoid unit value warnings.
+
+	- Updated old-style &function calls.
+
+	- Fixed conflicts between global our $DEBUG and
+	function-internal my $DEBUG.
+
+	- General formatting stuff (whitespace, single vs. double
+	quotes, etc.)
+
 1.03  Thu Oct 08 20:00:00 2004
 	- Added option 'password' to not echo the value typed.
 	- Added options for menu: 'separator', 'ignore_whitespace' and

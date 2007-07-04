@@ -9,7 +9,7 @@ require Exporter;
 our @ISA = qw (Exporter);
 our @EXPORT_OK = qw (rangeit legalit typeit menuit exprit yesit coderefit termwrap);
 our @EXPORT = qw (prompt);
-our $VERSION = '1.03';
+our $VERSION = '1.04';
 
 our $DEBUG = 0;
 our $MULTILINE_INDENT = "\t";
@@ -36,9 +36,11 @@ my %menu = (
 
 sub prompt ($$$$;@) {
 
-    my($mopt, $prompt, $prompt_options, $default, @things);
-    my($repl, $match_options, $case, $low, $high, $before, $regexp, $coderef);
-    my $prompt_full;
+    my($mopt, $prompt, $prompt_options, $default, @things) =
+      ('','','',undef,());
+    my($repl, $match_options, $case, $low, $high, $before, $regexp, $coderef) =
+      ('','','','','','','','');
+    my $prompt_full = '';
 
     # Figure out just what we are doing here
     $mopt = $_[0];
@@ -48,7 +50,7 @@ sub prompt ($$$$;@) {
     if (length($mopt) == 1
 	or $mopt =~ /\-n/i
 	or $mopt =~ /\+-n/i) {
-	my $dummy = "mopt is ok";
+	my $dummy = 'mopt is ok';
     } else {
 	croak "Illegal call of prompt; $mopt is more than one character; stopped";
     }
@@ -68,47 +70,47 @@ sub prompt ($$$$;@) {
 	$mopt = lc($mopt);
     }
 
-    if ($mopt eq "x" || $mopt eq "a" || ($mopt =~ /n$/) || $mopt eq "f") {
+    if ($mopt eq 'x' || $mopt eq 'a' || ($mopt =~ /n$/) || $mopt eq 'f') {
 	# More efficient this way - Allen
 	($mopt, $prompt, $prompt_options, $default) = @_;
 	$type = 1;
     } elsif ($mopt eq 'm') {
 	($mopt, $prompt, $prompt_options, $default) = @_;
 	$menu = 1;
-    } elsif ($mopt eq "c" || $mopt eq "i") {
+    } elsif ($mopt eq 'c' || $mopt eq 'i') {
 	($mopt, $prompt, $prompt_options, $default, @things) = @_;
 	$legal = 1;
-    } elsif ($mopt eq "r") {
+    } elsif ($mopt eq 'r') {
 	($mopt, $prompt, $prompt_options, $default, $low, $high) = @_;
 	$range = 1;
-    } elsif ($mopt eq "e") {
+    } elsif ($mopt eq 'e') {
 	($mopt, $prompt, $prompt_options, $default, $regexp) = @_;
 	$expr = 1;
-    } elsif ($mopt eq "s") {
+    } elsif ($mopt eq 's') {
 	($mopt, $prompt, $prompt_options, $default, $coderef) = @_;
-	ref($coderef) eq 'CODE' || die("No valid code reference supplied");
+	ref($coderef) eq 'CODE' || die('No valid code reference supplied');
 	$code = 1;
-    } elsif ($mopt eq "y") {
+    } elsif ($mopt eq 'y') {
 	($mopt, $prompt, $prompt_options, $default) = @_;
 	$yn = 1;
 	unless (defined($prompt_options) && length($prompt_options)) {
 	    if ($uc) {
-		$prompt_options = "Enter y or n";
+		$prompt_options = 'Enter y or n';
 	    } else {
-		$prompt_options = "y or n";
+		$prompt_options = 'y or n';
 	    }
 	}
 
 	if (defined($default)) {
 	    unless ($default =~ m/^[ynYN]/) {
 		if ($default) {
-		    $default = "y";
+		    $default = 'y';
 		} else {
-		    $default = "n";
+		    $default = 'n';
 		}
 	    }
 	} else {
-	    $default = "n";
+	    $default = 'n';
 	}
     } elsif ($mopt eq 'p') {
 	($mopt, $prompt, $prompt_options, $default) = @_;
@@ -161,7 +163,7 @@ sub prompt ($$$$;@) {
 			    ? $menu{'cols'}
 			    : int($gw/$entry_length));
 	    $num_cols ||= 1; # Could be zero if longest entry in a
-                             # list is wider than the screen
+	    # list is wider than the screen
 	    my $num_rows = (defined($menu{'rows'})
 			    ? $menu{'rows'}
 			    : int($number_menu_items/$num_cols)+1) ;
@@ -217,7 +219,7 @@ sub prompt ($$$$;@) {
 	    unless (defined($prompt_options) && length($prompt_options)) {
 		$prompt_options = "$menu{'low'} - $menu{'high'}";
 		if ($menu{'accept_multiple_selections'}) {
-		    $prompt_options .= ", separate multiple entries with spaces";
+		    $prompt_options .= ', separate multiple entries with spaces';
 		}
 	    }
 	}
@@ -226,7 +228,7 @@ sub prompt ($$$$;@) {
 	    $prompt_full .= "($prompt_options) ";
 	}
 
-	if ($default ne '') {
+	if (defined($default) and $default ne '') {
 	    $prompt_full .= "[default $default] ";
 	}
 
@@ -269,19 +271,19 @@ sub prompt ($$$$;@) {
 	if ($uc && ($repl eq '')) {
 	    $ok = 1;
 	} elsif ($type || $passwd) {
-	    $ok = &typeit($mopt, $repl, $DEBUG, $uc);
+	    $ok = typeit($mopt, $repl, $DEBUG, $uc);
 	} elsif ($menu) {
-	    $ok = &menuit(\@menu_repl, $repl, $DEBUG, $uc);
+	    $ok = menuit(\@menu_repl, $repl, $DEBUG, $uc);
 	} elsif ($legal) {
-	    ($ok,$repl) = &legalit($mopt, $repl, $uc, @things);
+	    ($ok,$repl) = legalit($mopt, $repl, $uc, @things);
 	} elsif ($range) {
-	    $ok = &rangeit($repl, $low, $high, $uc);
+	    $ok = rangeit($repl, $low, $high, $uc);
 	} elsif ($expr) {
-	    $ok = &exprit($repl, $regexp, $prompt_options, $uc, $DEBUG);
+	    $ok = exprit($repl, $regexp, $prompt_options, $uc, $DEBUG);
 	} elsif ($code) {
-	    $ok = &coderefit($repl, $coderef, $prompt_options, $uc, $DEBUG);
+	    $ok = coderefit($repl, $coderef, $prompt_options, $uc, $DEBUG);
 	} elsif ($yn) {
-	    ($ok,$repl) = &yesit($repl, $uc, $DEBUG);
+	    ($ok,$repl) = yesit($repl, $uc, $DEBUG);
 	} else {
 	    croak "No subroutine known for prompt type $mopt.";
 	}
@@ -317,13 +319,13 @@ sub rangeit ($$$$ ) {
     if ( $low <= $repl && $repl <= $high ) {
 	return 1;
     } elsif (!$uc) {
-	print "Invalid range value.  ";
+	print 'Invalid range value.  ';
     }
     return 0;
 }
 
 sub legalit ($$$@) {
-    # this routine checks to see if a repl is one of a set of "things"
+    # this routine checks to see if a repl is one of a set of 'things'
     # it checks case based on c = case check, i = ignore case
 
     my($mopt, $repl, $uc, @things) = @_;
@@ -335,7 +337,7 @@ sub legalit ($$$@) {
 
     my $quote_repl = quotemeta($repl);
 
-    if ($mopt eq "i") {
+    if ($mopt eq 'i') {
 	@match = grep {$_ =~ m/^$quote_repl/i} (@things);
     } else {
 	@match = grep {$_ =~ m/^$quote_repl/} (@things);
@@ -345,51 +347,49 @@ sub legalit ($$$@) {
 	return 1, $match[0];
     } else {
 	if (! $uc) {
-	    print "Invalid.  ";
+	    print 'Invalid.  ';
 	}
-	return 0, "";
+	return 0, '';
     }
 }
 
 sub typeit ($$$$ ) {
     # this routine does checks based on the following:
     # x = no checks, a = alpha only, n = numeric only
+    my ($mopt, $repl, $dbg, $uc) = @_;
+    print "inside of typeit\n" if $dbg;
 
-    my ($mopt, $repl, $DEBUG, $uc) = @_;
-
-    print "inside of typeit\n" if $DEBUG;
-
-    if ( $mopt eq "x" or $mopt eq "p" ) {
+    if ( $mopt eq 'x' or $mopt eq 'p' ) {
 	return 1;
-    } elsif ( $mopt eq "a" ) {
+    } elsif ( $mopt eq 'a' ) {
 	if ( $repl =~ /^[a-zA-Z]*$/ ) {
 	    return 1;
 	} elsif (! $uc) {
-	    print "Invalid type value.  ";
+	    print 'Invalid type value.  ';
 	}
-    } elsif ( $mopt eq "n" ) {
+    } elsif ( $mopt eq 'n' ) {
 	if ( $repl =~/^[0-9]*$/ ) {
 	    return 1;
 	} elsif (! $uc) {
-	    print "Invalid numeric value. Must be a positive integer or 0. ";
+	    print 'Invalid numeric value. Must be a positive integer or 0. ';
 	}
-    } elsif ( $mopt eq "-n" ) {
+    } elsif ( $mopt eq '-n' ) {
 	if ( $repl =~/^-[0-9]*$/ ) {
 	    return 1;
 	} elsif (! $uc) {
-	    print "Invalid numeric value. Must be a negative integer or 0. ";
+	    print 'Invalid numeric value. Must be a negative integer or 0. ';
 	}
-    } elsif ( $mopt eq "+-n" ) {
+    } elsif ( $mopt eq '+-n' ) {
 	if ( $repl =~/^-?[0-9]*$/ ) {
 	    return 1;
 	} elsif (! $uc) {
-	    print "Invalid numeric value. Must be an integer. ";
+	    print 'Invalid numeric value. Must be an integer. ';
 	}
-    } elsif ( $mopt eq "f" ) {
+    } elsif ( $mopt eq 'f' ) {
 	if ( $repl =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d)?([Ee]([+-]?\d+))?$/) {
 	    return 1;
 	} elsif (! $uc) {
-	    print "Invalid floating point value.  ";
+	    print 'Invalid floating point value.  ';
 	}
     } else {
 	croak "typeit called with unknown prompt type $mopt; stopped";
@@ -399,10 +399,9 @@ sub typeit ($$$$ ) {
 }
 
 sub menuit (\@$$$ ) {
+    my ($ra_repl, $repl, $dbg, $uc) = @_;
+    print "inside of menuit\n" if $dbg;
 
-    print "inside of menuit\n" if $DEBUG;
-
-    my ($ra_repl, $repl, $DEBUG, $uc) = @_;
     my @msgs = ();
 
     ## Parse for multiple values. Strip all whitespace if requested or
@@ -429,7 +428,7 @@ sub menuit (\@$$$ ) {
     } elsif (!scalar(@repls)
 	     &&
 	     !$menu{'accept_empty_selection'}) {
-	push @msgs, "You must make a selection.";
+	push @msgs, 'You must make a selection.';
     } else {
 	for (@repls) {
 	    if ( !rangeit($_,$menu{'low'},$menu{'high'},1)) {
@@ -452,8 +451,8 @@ sub menuit (\@$$$ ) {
 sub exprit ($$$$$ ) {
     # This routine does checks based on whether something
     # matches a supplied regexp - Allen
-    my($repl, $regexp, $prompt_options, $uc, $DEBUG) = @_;
-    print "inside of exprit\n" if $DEBUG;
+    my($repl, $regexp, $prompt_options, $uc, $dbg) = @_;
+    print "inside of exprit\n" if $dbg;
 
     if ( $repl =~ /^$regexp$/ ) {
 	return 1;
@@ -467,8 +466,8 @@ sub exprit ($$$$$ ) {
 sub coderefit ($$$$$ ) {
     # Execute supplied code reference with reply as argument and examine
     # sub-routine's return value
-    my($repl, $coderef, $prompt_options, $uc, $DEBUG) = @_;
-    print "inside of coderefit\n" if $DEBUG;
+    my($repl, $coderef, $prompt_options, $uc, $dbg) = @_;
+    print "inside of coderefit\n" if $dbg;
 
     if ( &$coderef($repl) ) {
 	return 1;
@@ -481,26 +480,26 @@ sub coderefit ($$$$$ ) {
 
 sub yesit ($$$ ) {
     # basic yes or no - Allen
-    my ($repl, $uc, $DEBUG) = @_;
-    print "inside of yesit\n" if $DEBUG;
+    my ($repl, $uc, $dbg) = @_;
+    print "inside of yesit\n" if $dbg;
 
     if ($repl =~ m/^[0nN]/) {
 	return 1,0;
     } elsif ($repl =~ m/^[1yY]/) {
 	return 1,1;
     } elsif (! $uc) {
-	print "Invalid yes or no response. ";
+	print 'Invalid yes or no response. ';
     }
     return 0,0;
 }
 
 sub termwrap ($;@) {
-    my($message) = "";
+    my($message) = '';
     if ($#_ > 0) {
 	if (defined($,)) {
 	    $message = join($,,@_);
 	} else {
-	    $message = join(" ",@_);
+	    $message = join(' ',@_);
 	}
     } else {
 	$message = $_[0];
@@ -513,11 +512,11 @@ sub termwrap ($;@) {
     }
 
     if ($message =~ m/\n\Z/) {
-	$message = wrap("", $MULTILINE_INDENT, $message);
+	$message = wrap('', $MULTILINE_INDENT, $message);
 	$message =~ s/\n*\Z/\n/;
 	return $message;
     } else {
-	$message = wrap("", $MULTILINE_INDENT, $message);
+	$message = wrap('', $MULTILINE_INDENT, $message);
 	$message =~ s/\n*\Z//;
 	return $message;
     }
@@ -574,10 +573,10 @@ Term::Prompt - Perl extension for prompting a user for information
 =head1 SYNOPSIS
 
     use Term::Prompt;
-    $value = &prompt(...);
+    $value = prompt(...);
 
     use Term::Prompt qw(termwrap);
-    print &termwrap(...);
+    print termwrap(...);
 
     $Term::Prompt::MULTILINE_INDENT = '';
 
@@ -591,7 +590,7 @@ This main function of this module is to accept interactive input. You
 specify the type of inputs allowed, a prompt, help text and defaults
 and it will deal with the user interface, (and the user!), by
 displaying the prompt, showing the default, and checking to be sure
-that the response is one of the legal choices.  Additional "types"
+that the response is one of the legal choices.  Additional 'types'
 that could be added would be a phone type, a social security type, a
 generic numeric pattern type...
 
@@ -619,101 +618,104 @@ its usage and is one of the following single characters:
 
 =item x: do not care
 
- $result = &prompt("x", "text prompt", "help prompt", "default" );
+ $result = prompt('x', 'text prompt', 'help prompt', 'default' );
 
 $result is whatever the user types.
 
 =item a: alpha-only
 
- $result = &prompt("a", "text prompt", "help prompt", "default" );
+ $result = prompt('a', 'text prompt', 'help prompt', 'default' );
 
-$result is a single "word" consisting of [A-Za-z] only. The response
+$result is a single 'word' consisting of [A-Za-z] only. The response
 is rejected until it conforms.
 
 =item n: numeric-only
 
- $result = &prompt("n", "text prompt", "help prompt", "default" );
+ $result = prompt('n', 'text prompt', 'help prompt', 'default' );
 
 The result will be a positive integer or 0.
 
- $result = &prompt("-n", "text prompt", "help prompt", "default" );
+ $result = prompt('-n', 'text prompt', 'help prompt', 'default' );
 
 The result will be a negative integer or 0.
 
- $result = &prompt("+-n", "text prompt", "help prompt", "default" );
+ $result = prompt('+-n', 'text prompt', 'help prompt', 'default' );
 
 The result will be a any integer or 0.
 
 =item i: ignore case
 
- $result = &prompt("i", "text prompt", "help prompt", "default",
-	                 "legal_options-ignore-case-list");
+ $result = prompt('i', 'text prompt', 'help prompt', 'default',
+	              'legal_options-ignore-case-list');
 
 =item c: case sensitive
 
- $result = &prompt("c", "text prompt", "help prompt", "default",
-	                 "legal_options-case-sensitive-list");
+ $result = prompt('c', 'text prompt', 'help prompt', 'default',
+	              'legal_options-case-sensitive-list');
 
 =item r: ranged by the low and high values
 
- $result = &prompt("r", "text prompt", "help prompt", "default",
-                       "low", "high");
+ $result = prompt('r', 'text prompt', 'help prompt', 'default',
+                  'low', 'high');
 
 =item f: floating-point
 
- $result = &prompt("f", "text prompt", "help prompt", "default");
+ $result = prompt('f', 'text prompt', 'help prompt', 'default');
 
 The result will be a floating-point number.
 
 =item y: yes/no
 
- $result = &prompt("y", "text prompt", "help prompt", "default")
+ $result = prompt('y', 'text prompt', 'help prompt', 'default')
 
 The result will be 1 for y, 0 for n. A default not starting with y, Y,
 n or N will be treated as y for positive, n for negative.
 
 =item e: regular expression
 
- $result = &prompt("e", "text prompt", "help prompt", "default",
-                       "regular expression");
+ $result = prompt('e', 'text prompt', 'help prompt', 'default',
+                  'regular expression');
 
 The regular expression has and implicit ^ and $ surrounding it; just
 put in .* before or after if you need to free it up before or after.
 
 =item s: sub
 
- $result = &prompt("s", "text prompt", "help prompt", "default",
-                   sub { warn "Your input was " . shift; 1 });
- $result = &prompt("s", "text prompt", "help prompt", "default",
-                   \&my_custom_validation_handler);
+ $result = prompt('s', 'text prompt', 'help prompt', 'default',
+                  sub { warn 'Your input was ' . shift; 1 });
+ $result = prompt('s', 'text prompt', 'help prompt', 'default',
+                  \&my_custom_validation_handler);
 
 User reply is passed to given code reference as first and only
 argument.  If code returns true, input is accepted.
 
 =item p: password
 
- $result = &prompt("p", "text prompt", "help prompt", "default" );
+ $result = prompt('p', 'text prompt', 'help prompt', 'default' );
 
-$result is whatever the user types, but the characters are not echoed 
+$result is whatever the user types, but the characters are not echoed
 to the screen.
 
 =item m: menu
 
- @results = &prompt("m", {
-			  prompt           => "text prompt",
-			  title            => 'My Silly Menu',
-                          items            => [ qw (foo bar baz biff spork boof akak) ],
-			  order            => 'across',
-			  rows             => 1,
-			  cols             => 1,
-			  display_base     => 1,
-			  return_base      => 0,
-			  accept_multiple_selections => 0,
-			  accept_empty_selection     => 0,
-                          ignore_whitespace => 0,
-                          separator         => '[^0-9]+'
-			 },
-		    "help prompt", "default");
+ @results = prompt(
+			'm',
+			{
+			prompt           => 'text prompt',
+			title            => 'My Silly Menu',
+            items            => [ qw (foo bar baz biff spork boof akak) ],
+			order            => 'across',
+			rows             => 1,
+			cols             => 1,
+			display_base     => 1,
+			return_base      => 0,
+			accept_multiple_selections => 0,
+			accept_empty_selection     => 0,
+            ignore_whitespace => 0,
+            separator         => '[^0-9]+'
+			},
+		    'help prompt',
+			'default');
 
 This will create a menu with numbered items to select. You replace the
 normal I<prompt> argument with a hash reference containing this
@@ -857,16 +859,16 @@ want ANY indentation:
 
 =head2 Text and Help Prompts
 
-What, you might ask, is the difference between a "text prompt" and a
-"help prompt"?  Think about the case where the "legal_options" look
-something like: "1-1000".  Now consider what happens when you tell
-someone that "0" is not between 1-1000 and that the possible choices
-are: :) 1 2 3 4 5 .....  This is what the "help prompt" is for.
+What, you might ask, is the difference between a 'text prompt' and a
+'help prompt'?  Think about the case where the 'legal_options' look
+something like: '1-1000'.  Now consider what happens when you tell
+someone that '0' is not between 1-1000 and that the possible choices
+are: :) 1 2 3 4 5 .....  This is what the 'help prompt' is for.
 
-It will work off of unique parts of "legal_options".
+It will work off of unique parts of 'legal_options'.
 
 Changed by Allen - if you capitalize the type of prompt, it will be
-treated as a true "help prompt"; that is, it will be printed ONLY if
+treated as a true 'help prompt'; that is, it will be printed ONLY if
 the menu has to be redisplayed due to and entry error. Otherwise, it
 will be treated as a list of options and displayed only the first time
 the menu is displayed.
